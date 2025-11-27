@@ -1,110 +1,212 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Regalos de Boda</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    button { padding: 8px 16px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
-    button:disabled { background: gray; }
-    .selected { background: #c0ffc0; }
-  </style>
+<meta charset="UTF-8">
+<title>Regalos de Boda</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+  body {
+    margin:0;
+    background:#fafafa;
+    font-family:"Segoe UI", sans-serif;
+  }
+  .center {
+    text-align:center;
+    padding:30px;
+  }
+  .welcome-img {
+    width:100%;
+    max-width:420px;
+    border-radius:20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  }
+  .login-box { margin-top:20px; }
+  .hidden { display:none; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+    gap: 25px;
+    padding: 20px;
+  }
+
+  .card {
+    background:white;
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    border:3px solid transparent;
+    transition:.25s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .card img {
+    width:100%;
+    height:200px;
+    object-fit:cover;
+  }
+
+  .card-content { padding:16px; }
+
+  .agotado {
+    opacity:0.4;
+    pointer-events:none;
+    filter: grayscale(100%);
+  }
+
+  #confirm-btn {
+    display:block;
+    margin:25px auto;
+    padding:12px 30px;
+    background:#0077ff;
+    color:white;
+    border:none;
+    border-radius:12px;
+    font-size:18px;
+    cursor:pointer;
+  }
+
+  #confirm-btn:disabled {
+    background:#aaa;
+    cursor:not-allowed;
+  }
+</style>
 </head>
+
 <body>
-  <h2>Lista de Regalos</h2>
-  <p id="user-info"></p>
 
-  <div id="catalogo"></div>
-  <br>
-  <button id="confirm-btn">Confirmar selección</button>
+<!-- PANTALLA DE BIENVENIDA -->
+<div id="welcome" class="center">
+  <img id="foto-boda" class="welcome-img" 
+       src="https://raw.githubusercontent.com/Ch3lo94/Regalos_Boda/main/images/IMG-20251127-WA0008.jpg">
 
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbwOz_hUq0xRZmTel05NglgrK0rLX4W_U987q7eQ-aTV4s6Bt_87erQ4ccSaJTlmzPnv/exec";
-    let usuario = {};
-    let seleccion = [];
+  <h2>Nos ayudarías mucho con estas cosas que nos faltan ❤️</h2>
+  <p>Ingresá con tu cuenta de Google y elegí el regalo.</p>
 
-    async function obtenerUsuario() {
-      const resp = await fetch(API);
-      const data = await resp.json();
-      usuario = data.user;
-      document.getElementById("user-info").innerText = `Hola ${usuario.nombre} (${usuario.email})`;
-      cargarCatalogo();
-    }
+  <div id="g_id_onload"
+    data-client_id="342769047778-jc52eh3n59a3vjocagmomi8pln5kbqv3.apps.googleusercontent.com"
+    data-callback="handleCredentialResponse">
+  </div>
 
-    async function cargarCatalogo() {
-      const resp = await fetch(API);
-      const data = await resp.json();
-      const catalogo = data.regalos;
-      const usados = data.usados;
+  <div class="login-box g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="filled_blue">
+  </div>
+</div>
 
-      const div = document.getElementById("catalogo");
-      div.innerHTML = "";
+<!-- CATÁLOGO -->
+<div id="catalogo" class="hidden">
+  <h1 class="center">Elegí un regalo</h1>
+  <div id="grid" class="grid"></div>
+  <button id="confirm-btn" disabled>Confirmar selección</button>
+</div>
 
-      catalogo.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwOz_hUq0xRZmTel05NglgrK0rLX4W_U987q7eQ-aTV4s6Bt_87erQ4ccSaJTlmzPnv/exec";
 
-        const yaTomado = usados.includes(String(item.ID));
-        const estaSeleccionado = seleccion.includes(String(item.ID));
+let usuario = null;
+let seleccion = [];
 
-        card.innerHTML = `
-          <strong>${item.ID}. ${item.Nombre}</strong><br>
-          <button ${yaTomado ? "disabled" : ""} class="btn-select" data-id="${item.ID}">
-            ${yaTomado ? "Ya elegido" : estaSeleccionado ? "Quitar" : "Elegir"}
-          </button>
-        `;
+/* LOGIN GOOGLE */
+async function handleCredentialResponse(response) {
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
 
-        div.appendChild(card);
-      });
+  usuario = { 
+    nombre: payload.given_name,
+    apellido: payload.family_name,
+    email: payload.email.toLowerCase()
+  };
 
-      document.querySelectorAll('.btn-select').forEach(btn => {
-        btn.onclick = () => {
-          const id = btn.dataset.id;
-          if (seleccion.includes(id)) {
-            seleccion = seleccion.filter(x => x !== id);
-          } else {
-            seleccion.push(id);
-          }
-          cargarCatalogo();
-        };
-      });
-    }
+  // CONSULTA AL BACKEND SI YA RESPONDIÓ
+  const check = await fetch(API + "?email=" + usuario.email);
+  const data = await check.json();
 
-    document.getElementById("confirm-btn").onclick = async () => {
-      if (seleccion.length === 0) {
-        alert("Elegí al menos 1 regalo.");
-        return;
-      }
+  if (data.yaRespondio) {
+    document.body.innerHTML = `
+      <h1 style="text-align:center;margin-top:40px;">
+        Ya registramos tu respuesta ❤️
+      </h1>
+      <p style="text-align:center;">¡Gracias por ayudarnos!</p>
+    `;
+    return;
+  }
 
-      const fullName = usuario.nombre.trim().split(" ");
-      const nombre = fullName.slice(0, -1).join(" ") || fullName[0];
-      const apellido = fullName.slice(-1)[0] || "";
+  // SI NO RESPONDIÓ → MOSTRAR CATÁLOGO
+  document.getElementById("welcome").classList.add("hidden");
+  document.getElementById("catalogo").classList.remove("hidden");
 
-      const resp = await fetch(API, {
-        method: "POST",
-        body: JSON.stringify({
-          nombre,
-          apellido,
-          email: usuario.email,
-          seleccion
-        })
-      });
+  cargarCatalogo();
+}
 
-      const r = await resp.json();
+/* CATALOGO */
+async function cargarCatalogo() {
+  const res = await fetch(API);
+  const items = await res.json();
 
-      if (r.success) {
-        alert("¡Gracias! Tu elección fue registrada.");
-        seleccion = [];
-        cargarCatalogo();
-      } else {
-        alert("Error: " + r.error);
-      }
-    };
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
 
-    obtenerUsuario();
-  </script>
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    if (item.stockRestante <= 0) card.classList.add("agotado");
+
+    card.innerHTML = `
+      <img src="${item.imagen}">
+      <div class="card-content">
+        <h3>${item.nombre}</h3>
+        <p>${item.descripcion || ''}</p>
+      </div>
+    `;
+
+    card.onclick = () => toggle(item.id, card);
+    grid.appendChild(card);
+  });
+}
+
+function toggle(id, card) {
+  if (seleccion.includes(id)) {
+    seleccion = seleccion.filter(x => x !== id);
+    card.style.border = "3px solid transparent";
+  } else {
+    seleccion.push(id);
+    card.style.border = "3px solid #0077ff";
+  }
+
+  document.getElementById("confirm-btn").disabled = seleccion.length === 0;
+}
+
+/* CONFIRMAR REGALO */
+document.getElementById("confirm-btn").onclick = async () => {
+  const resp = await fetch(API, {
+    method: "POST",
+    body: JSON.stringify({
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+      seleccion
+    })
+  });
+
+  const r = await resp.json();
+
+  if (!r.success) {
+    alert(r.error);
+    return;
+  }
+
+  // MENSAJE FINAL Y BLOQUEO
+  document.body.innerHTML = `
+    <h1 style="text-align:center;margin-top:40px;">
+      ¡Gracias por tu regalo! 🎁❤️
+    </h1>
+    <p style="text-align:center;">Tu respuesta quedó registrada.</p>
+  `;
+};
+</script>
+
 </body>
 </html>
-
