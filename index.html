@@ -2,11 +2,58 @@
 <html>
 <head>
   <base target="_top">
-  <script>
-    document.addEventListener("DOMContentLoaded", cargarRegalos);
 
-    function cargarRegalos() {
+  <style>
+    .item {
+      width: 200px;
+      border: 2px solid transparent;
+      padding: 10px;
+      margin: 10px;
+      display: inline-block;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      border-radius: 8px;
+    }
+
+    .item:hover {
+      background: #f3f3f3;
+    }
+
+    .item.selected {
+      border: 2px solid #007bff;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+    }
+
+    .agotado {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #ddd;
+    }
+
+    img { width: 120px; height: auto; }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", cargar);
+
+    let seleccion = [];
+
+    function cargar() {
       google.script.run.withSuccessHandler(renderRegalos).getRegalos();
+    }
+
+    function toggleRegalo(id) {
+      const elem = document.getElementById("item-" + id);
+      if (elem.classList.contains("agotado")) return;
+
+      if (seleccion.includes(id)) {
+        seleccion = seleccion.filter(x => x !== id);
+        elem.classList.remove("selected");
+      } else {
+        seleccion.push(id);
+        elem.classList.add("selected");
+      }
     }
 
     function renderRegalos(lista) {
@@ -14,65 +61,58 @@
       cont.innerHTML = "";
 
       lista.forEach(r => {
+        const agotado = r.stockRestante <= 0 ? "agotado" : "";
+
         cont.innerHTML += `
-          <div class="item">
-            <img src="${r.imagen}" width="120">
+          <div id="item-${r.id}" 
+               class="item ${agotado}"
+               onclick="toggleRegalo(${r.id})">
+
+            <img src="${r.imagen}">
             <h3>${r.nombre}</h3>
-            <p>Stock: ${r.stock}</p>
-            <button onclick="selectRegalo(${r.id})">Elegir</button>
+            <p>${r.descripcion}</p>
           </div>
         `;
       });
     }
 
-    let regaloSeleccionado = null;
-    function selectRegalo(id) {
-      regaloSeleccionado = id;
-      alert("Regalo seleccionado");
-    }
-
     function enviar() {
-      const nombre = document.getElementById("nombre").value;
-      const apellido = document.getElementById("apellido").value;
-      const email = document.getElementById("email").value;
+      const nombre = document.getElementById("nombre").value.trim();
+      const apellido = document.getElementById("apellido").value.trim();
+      const email = document.getElementById("email").value.trim();
 
-      if (!regaloSeleccionado) {
-        alert("Elegí un regalo");
+      if (!nombre || !apellido || !email) {
+        alert("Completá todos los datos");
+        return;
+      }
+
+      if (seleccion.length === 0) {
+        alert("Elegí al menos un regalo");
         return;
       }
 
       google.script.run
         .withSuccessHandler(res => {
-          if (!res.ok) alert(res.msg);
-          else {
-            alert("Gracias por tu respuesta!");
-            location.reload();
+          if (!res.ok) {
+            alert(res.msg);
+            return;
           }
+          alert("Gracias por participar!");
+          location.reload();
         })
-        .guardarRespuesta(nombre, apellido, email, regaloSeleccionado);
+        .guardarRespuesta(nombre, apellido, email, seleccion);
     }
   </script>
-
-  <style>
-    .item {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px;
-      text-align: center;
-      width: 200px;
-      display: inline-block;
-    }
-  </style>
 </head>
 
 <body>
-  <h2>Elegí tu regalo</h2>
+  <h2>Elegí tu(s) regalo(s)</h2>
 
   <input id="nombre" placeholder="Nombre"><br>
   <input id="apellido" placeholder="Apellido"><br>
   <input id="email" placeholder="Email"><br><br>
 
-  <div id="regalos">Cargando...</div>
+  <div id="regalos">Cargando regalos...</div>
 
   <button onclick="enviar()">Enviar</button>
 </body>
