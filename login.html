@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 20px;
+    }
+    #btnGoogle {
+      background: #4285F4;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 80%;
+      max-width: 400px;
+    }
+    img.hero {
+      width: 350px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <img src="https://raw.githubusercontent.com/Ch3lo94/Regalos_Boda/main/images/IMG-20251127-WA0008.jpg" class="hero">
+
+  <h2>Nos ayudarías mucho con estas cosas que nos faltan ❤️</h2>
+  <p>Por favor ingresá con tu cuenta de Google y seleccioná los regalos que deseas darnos.</p>
+
+  <button id="btnGoogle" onclick="loginGoogle()">Acceder con Google</button>
+
+  <script>
+    function loginGoogle() {
+      google.script.run.withSuccessHandler(res => {
+        if (!res.ok) {
+          alert("Tu correo ya registró un regalo.");
+          return;
+        }
+        window.location.href = res.url;
+      }).iniciarLogin();
+    }
+  </script>
+
+</body>
+</html>
