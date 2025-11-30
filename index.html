@@ -30,15 +30,30 @@
     margin-top:20px;
   }
 
-  /* Fuerza a Google a NO mover el botón */
-  .g_id_signin,
-  #g_id_onload,
-  div[role="presentation"],
-  div[role="button"] {
-    margin: 0 auto !important;
-    display:flex !important;
-    justify-content:center !important;
-  }
+/* 🔥 Corrección final para centrar REAL del botón de Google */
+#g_id_onload,
+.g_id_signin {
+  width: 100% !important;
+  display:flex !important;
+  justify-content:center !important;
+}
+
+.g_id_signin > div,
+.g_id_signin iframe {
+  margin: 0 auto !important;
+  display:block !important;
+}
+
+/* Google a veces mete un div invisible que empuja el botón */
+#g_id_onload > div,
+.g_id_signin > div[style*="position"],
+.g_id_signin > div[style*="absolute"] {
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 
   .grid {
     display: grid;
