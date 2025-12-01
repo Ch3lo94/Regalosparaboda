@@ -10,28 +10,28 @@
       margin: 0;
       background: #f7f7f7;
     }
-
-    /* ===== GRID ===== */
+    
+    /* === GRID === */
     .grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr); /* desktop */
+      grid-template-columns: repeat(5, 1fr); /* Desktop grande */
       gap: 20px;
     }
-
+    
     /* Tablets */
     @media (max-width: 1024px) {
       .grid {
         grid-template-columns: repeat(4, 1fr);
       }
     }
-
-    /* Celulares — 3 por fila */
-    @media (max-width: 600px) {
+    
+    /* Celular — 3 por fila */
+    @media (max-width: 768px) {
       .grid {
         grid-template-columns: repeat(3, 1fr);
       }
     }
-
+    
     .item {
       border: 1px solid #ccc;
       background: white;
@@ -43,24 +43,34 @@
       flex-direction: column;
       justify-content: space-between;
     }
-
+    
     .item img {
       width: 100%;
       height: 160px;
       object-fit: contain;
       margin-bottom: 10px;
     }
-
-    /* ===== BANNER YA FUE ELEGIDO ===== */
+    
+    /* ---- Banner YA FUE ELEGIDO ---- */
+    
+    /* Celular (por defecto) */
     .agotado-banner {
       background: #d4af37;
       color: black;
       text-align: center;
-      padding: 14px 0;        /* aumenta altura */
+      padding: 12px 0;
       font-weight: bold;
-      font-size: 18px;        /* texto más grande */
+      font-size: 16px;
       border-radius: 6px;
       margin-top: 10px;
+    }
+    
+    /* PC — más grande */
+    @media (min-width: 1024px) {
+      .agotado-banner {
+        font-size: 22px;
+        padding: 16px 0;
+      }
     }
   </style>
 </head>
