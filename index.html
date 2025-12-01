@@ -8,7 +8,7 @@
 <style>
 body {
   margin:0;
-  background:#f5f5f5;
+  background:#f3f3f3;
   font-family:"Segoe UI", sans-serif;
 }
 
@@ -18,7 +18,7 @@ body {
   width:100%;
   padding:20px;
   box-sizing:border-box;
-  max-width:600px;
+  max-width:650px;
   margin:0 auto;
 }
 
@@ -29,90 +29,105 @@ p  { font-size:16px; line-height:1.5; }
 /* Imagen bienvenida */
 .welcome-img {
   width:90%;
-  max-width:420px;
-  height:auto;
+  max-width:450px;
   border-radius:20px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
 }
 
-.hidden { display:none; }
-
-/* ==== GRID ESTILO CATÁLOGO (como tu segunda imagen) ==== */
+/* GRID — TARJETAS MÁS GRANDES */
 .grid-wrapper {
   width:100%;
-  padding:15px 10px 40px;
+  padding:20px;
   box-sizing:border-box;
+  display:flex;
+  justify-content:center;
 }
 
 .grid {
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(170px, 1fr));
-  gap:18px;
-  max-width:900px;
-  margin:0 auto;
+  grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+  gap:24px;
+  width:100%;
+  max-width:1100px;
 }
 
-/* Tarjeta visual */
+/* TARJETA */
 .card {
   background:white;
-  border-radius:14px;
+  border-radius:16px;
   overflow:hidden;
   cursor:pointer;
-  border:2px solid transparent;
+  border:3px solid transparent;
   transition:.25s ease;
-  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+  position:relative;
 }
 
 .card:hover {
-  transform:translateY(-4px);
-  box-shadow:0 6px 14px rgba(0,0,0,0.2);
+  transform:translateY(-5px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.18);
 }
 
-.selected {
-  border:3px solid #d4af37 !important;
-  box-shadow:0 6px 18px rgba(212,175,55,0.6) !important;
-  transform:scale(1.02);
-}
-
+/* Imagen más grande */
 .card img {
   width:100%;
-  height:150px;
+  height:200px;
   object-fit:cover;
 }
 
+/* Contenido */
 .card-content {
-  padding:12px 14px;
+  padding:16px;
 }
 
 .card-content h3 {
-  font-size:15px;
-  font-weight:600;
-  margin:0 0 6px 0;
-  min-height:40px;
+  font-size:17px;
+  margin:0 0 8px 0;
 }
 
 .card-content p {
-  font-size:13px;
+  font-size:14px;
   margin:0;
   color:#555;
 }
 
-/* Agotado */
+/* TARJETA SELECCIONADA */
+.selected {
+  border:4px solid #d4af37 !important;
+  box-shadow:0 6px 20px rgba(212,175,55,0.6) !important;
+  transform:scale(1.03);
+}
+
+/* CARTEL YA ELEGIDO */
+.badge-agotado {
+  width:100%;
+  background:#d4af37;
+  color:black;
+  font-weight:bold;
+  text-align:center;
+  padding:6px 0;
+  font-size:15px;
+  position:absolute;
+  bottom:0;
+  left:0;
+}
+
+/* TARJETA DESHABILITADA */
 .agotado {
   opacity:0.45;
   pointer-events:none;
 }
 
-/* Botón confirmar */
+/* BOTÓN CONFIRMAR */
 #confirm-btn {
   display:block;
   margin:25px auto;
-  padding:12px 30px;
+  padding:14px 34px;
   background:#0077ff;
   color:white;
   border:none;
-  border-radius:12px;
-  font-size:18px;
+  border-radius:14px;
+  font-size:20px;
   cursor:pointer;
 }
 #confirm-btn:disabled {
@@ -120,12 +135,10 @@ p  { font-size:16px; line-height:1.5; }
   cursor:not-allowed;
 }
 
-/* Sign-in Google */
+/* Google Sign-in */
 #google-btn-wrapper {
-  width:100%;
   display:flex;
   justify-content:center;
-  align-items:center;
   margin-top:20px;
 }
 
@@ -133,10 +146,9 @@ p  { font-size:16px; line-height:1.5; }
 @media (max-width:480px) {
   .grid {
     grid-template-columns:repeat(2, 1fr);
-    gap:14px;
+    gap:16px;
   }
-  .card img { height:130px; }
-  h1 { font-size:22px; }
+  .card img { height:150px; }
 }
 </style>
 </head>
@@ -228,7 +240,13 @@ async function cargarCatalogo() {
   items.forEach(item => {
     const card = document.createElement("div");
     card.className = "card";
-    if (item.stockRestante <= 0) card.classList.add("agotado");
+    
+    let badge = "";
+
+    if (item.stockRestante <= 0) {
+      card.classList.add("agotado");
+      badge = `<div class="badge-agotado">YA ELEGIDO</div>`;
+    }
 
     card.innerHTML = `
       <img src="${item.imagen}">
@@ -236,9 +254,13 @@ async function cargarCatalogo() {
         <h3>${item.nombre}</h3>
         <p>${item.descripcion || ''}</p>
       </div>
+      ${badge}
     `;
 
-    card.onclick = () => toggle(item.id, card);
+    if (item.stockRestante > 0) {
+      card.onclick = () => toggle(item.id, card);
+    }
+
     grid.appendChild(card);
   });
 }
